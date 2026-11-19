@@ -1,5 +1,5 @@
-export type SendingProvider = "none" | "cloudflare" | "resend" | "ses";
-export type ReceivingProvider = "none" | "cloudflare" | "resend" | "ses";
+export type SendingProvider = "none" | "cloudflare" | "resend" | "ses" | "telnyx";
+export type ReceivingProvider = "none" | "cloudflare" | "resend" | "ses" | "telnyx";
 
 export type Domain = {
 	id: string;

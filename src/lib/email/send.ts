@@ -207,9 +207,10 @@ async function deliverEmail(env: CloudflareEnv, delivery: PreparedDelivery): Pro
 	const toAddr = joinEmailAddressList(to);
 	try {
 		const provider = await getOutboundProviderConfig(env, from);
-		// Cloudflare's 5 MiB cap forces big files into download links; Resend takes
-		// the attachments directly (the admin's outgoing limit still applies).
-		const prepared = provider.provider === "cloudflare"
+		// Cloudflare's 5 MiB cap forces big files into download links; so does Telnyx's
+		// 8 MB request cap once attachments are base64 in JSON. Resend and SES take the
+		// attachments directly (the admin's outgoing limit still applies).
+		const prepared = provider.provider === "cloudflare" || provider.provider === "telnyx"
 			? await prepareCloudflareAttachments(env, attachments, {
 				subject: input.subject,
 				html: input.html,

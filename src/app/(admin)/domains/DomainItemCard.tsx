@@ -18,7 +18,9 @@ import {
   MoreVertical,
   Trash2,
 } from "@/components/icons";
-import type { DomainItemCardProps } from "./types";
+import type { DomainItemCardProps, ReceivingProvider } from "./types";
+
+const PROVIDER_NAMES: Record<ReceivingProvider, string> = { none: "", cloudflare: "Cloudflare", resend: "Resend", ses: "Amazon SES", telnyx: "Telnyx" };
 
 function StatusIcon({ ok, className }: { ok: boolean; className?: string }) {
   if (ok) return <Check className={cn(className, "text-green-600")} />;
@@ -88,13 +90,13 @@ export default function DomainItemCard({
               </Badge>
             ) : (
               <Badge variant="outline" className="gap-1">
-                {t("domains.badge.receivingVia", { provider: item.receivingProvider === "ses" ? "Amazon SES" : "Resend" })}
+                {t("domains.badge.receivingVia", { provider: PROVIDER_NAMES[item.receivingProvider] })}
               </Badge>
             )}
-            {item.sendingProvider === "resend" || item.sendingProvider === "ses" ? (
+            {item.sendingProvider === "resend" || item.sendingProvider === "ses" || item.sendingProvider === "telnyx" ? (
               <Badge variant="outline" className="gap-1">
                 <StatusIcon ok className="h-3 w-3" />
-                {t("domains.badge.sendingVia", { provider: item.sendingProvider === "ses" ? "Amazon SES" : "Resend" })}
+                {t("domains.badge.sendingVia", { provider: PROVIDER_NAMES[item.sendingProvider] })}
               </Badge>
             ) : item.sendingProvider === "none" ? (
               <Badge variant="secondary" className="gap-1 opacity-50">

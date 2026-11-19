@@ -5,11 +5,14 @@ import { requireAwsConfig } from "@/lib/aws/config";
 import { sendSesEmail } from "@/lib/aws/ses";
 import { getEmailAddress } from "@/lib/email/address";
 import { fetchSentMessageId, resendClient, resendOmittedHeaders, resendSetsMessageId, type ResendClient } from "@/lib/email/resend-api";
+import { getTelnyxClient } from "@/lib/email/telnyx-config";
+import { sendWithTelnyx } from "@/lib/email/telnyx-send";
+import { telnyxClient } from "@/lib/email/telnyx-api";
 import type { OutboundProviderConfig, OutboundProviderMessage, ResendKeyStatus } from "@/lib/email/outbound-provider-types";
 
 /**
- * Each domain picks its own sender: Cloudflare Email Sending, Resend, or none
- * (receive-only). Receiving and storage always stay on Cloudflare. The Resend key
+ * Each domain picks its own sender: Cloudflare Email Sending, Resend, Amazon SES,
+ * Telnyx, or none (receive-only). The Resend key
  * is shared by every domain; it comes from the admin setting, falling back to a
  * RESEND_API_KEY secret so it can be provisioned outside the database.
  */
@@ -45,6 +48,7 @@ export async function getOutboundProviderConfig(env: CloudflareEnv, fromAddress:
 	}
 	if (domain.provider === "resend") return { provider: "resend", apiKey: (await getResendClient(env)).apiKey };
 	if (domain.provider === "ses") return { provider: "ses", config: await requireAwsConfig(env) };
+	if (domain.provider === "telnyx") return { provider: "telnyx", apiKey: (await getTelnyxClient(env)).apiKey };
 	return { provider: "cloudflare" };
 }
 
@@ -119,6 +123,7 @@ export async function sendThroughProvider(
 ): Promise<{ messageId: string }> {
 	if (config.provider === "resend") return sendWithResend(env, resendClient(env, config.apiKey), message, idempotencyKey);
 	if (config.provider === "ses") return sendSesEmail(config.config, message);
+	if (config.provider === "telnyx") return sendWithTelnyx(telnyxClient(env, config.apiKey), message, idempotencyKey);
 	const response = await env.EMAIL.send({
 		from: message.from,
 		to: message.to,

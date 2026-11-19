@@ -10,10 +10,11 @@ import { getDomainForUser } from "@/lib/domains/service";
 import { setupReceiving } from "@/lib/domains/receiving";
 import { MxConflictError } from "@/lib/domains/receiving-dns";
 import { getResendReceivingView } from "@/lib/domains/resend-receiving";
+import { getTelnyxReceivingView } from "@/lib/domains/telnyx-domain";
 
 type Params = { params: Promise<{ id: string; provider: string }> };
 const noStore = { "Cache-Control": "no-store" };
-const providerSchema = z.enum(["cloudflare", "resend", "ses"]);
+const providerSchema = z.enum(["cloudflare", "resend", "ses", "telnyx"]);
 
 const originOf = (env: CloudflareEnv, request: Request) => env.APP_URL?.trim() || new URL(request.url).origin;
 
@@ -31,6 +32,7 @@ export async function GET(request: Request, { params }: Params) {
 			if (!(await getAwsConfig(env))) return NextResponse.json({ credentials: false, view: null }, { headers: noStore });
 			return NextResponse.json({ credentials: true, view: await getSesReceivingView(env, domain) }, { headers: noStore });
 		}
+		if (provider.data === "telnyx") return NextResponse.json({ credentials: true, view: await getTelnyxReceivingView(env, domain, originOf(env, request)) }, { headers: noStore });
 		return NextResponse.json({ credentials: true, view: await getResendReceivingView(env, domain, originOf(env, request)) }, { headers: noStore });
 	} catch (error) {
 		return NextResponse.json({ error: error instanceof Error ? error.message : "Could not reach the provider" }, { status: 502 });

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import type { ReceivingStep } from "@/lib/aws/ses-receiving-types";
 import AwsCredentialsPanel from "./AwsCredentialsPanel";
 import ResendKeyRow from "./ResendKeyRow";
+import TelnyxKeyRows from "./TelnyxKeyRows";
 import { requestJson, runReceivingSetup } from "./api";
 import { StatusRow } from "./status-row";
 
@@ -17,7 +18,7 @@ type ViewResponse = {
 
 type Props = {
 	domainId: string;
-	provider: "resend" | "ses";
+	provider: "resend" | "ses" | "telnyx";
 	/** Reports whether the provider is fully ready (null while unknown). */
 	onReady?: (ready: boolean | null) => void;
 };
@@ -25,6 +26,7 @@ type Props = {
 const COPY = {
 	resend: { hint: "domains.resendReceivingHint" },
 	ses: { hint: "domains.sesReceivingHint" },
+	telnyx: { hint: "domains.telnyxReceivingHint" },
 } as const;
 
 /** Checklist and setup button for receiving through Resend or Amazon SES. */
@@ -43,9 +45,9 @@ export default function ReceivingProviderConfig({ domainId, provider, onReady }:
 		requestJson<ViewResponse & { keyConfigured?: boolean }>(`/api/domains/${domainId}/receiving/${provider}`, "GET")
 			.then((data) => {
 				if (!active) return;
-				// Resend has no separate credentials call: the key is the first step of its checklist.
+				// Resend and Telnyx have no separate credentials call: the key is the first step of the checklist.
 				const keyStep = data.view?.steps.find((step) => step.key === "key");
-				setCredentials(provider === "resend" && keyStep ? keyStep.ok : (data.credentials ?? true));
+				setCredentials(provider !== "ses" && keyStep ? keyStep.ok : (data.credentials ?? true));
 				setView(data.view ?? null);
 				setError(data.error ?? "");
 			})
@@ -76,7 +78,11 @@ export default function ReceivingProviderConfig({ domainId, provider, onReady }:
 		<div className="space-y-2">
 			{provider === "ses"
 				? <AwsCredentialsPanel need="receiving" onChanged={(configured) => { setCredentials(configured); refresh(); }} />
-				: (
+				: provider === "telnyx" ? (
+					<ul className="space-y-2">
+						<TelnyxKeyRows withPublicKey onChanged={(status) => { setCredentials(status.configured); refresh(); }} onError={setError} />
+					</ul>
+				) : (
 					<ul className="space-y-2">
 						<ResendKeyRow configured={credentials} onChanged={(configured) => { setCredentials(configured); refresh(); }} onError={setError} />
 					</ul>
@@ -84,7 +90,7 @@ export default function ReceivingProviderConfig({ domainId, provider, onReady }:
 			{credentials && (
 				<ul className="space-y-2">
 					{loading && !view && <li className="list-none text-sm text-neutral-500">{t("domains.checking")}</li>}
-					{view?.steps.filter((step) => provider !== "resend" || step.key !== "key").map((step) => (
+					{view?.steps.filter((step) => provider === "ses" || (step.key !== "key" && step.key !== "publicKey")).map((step) => (
 						<StatusRow key={step.key} ok={step.ok} title={step.label} hint="">{step.detail ?? (step.ok ? t("domains.ok") : t("domains.notSetUp"))}</StatusRow>
 					))}
 				</ul>

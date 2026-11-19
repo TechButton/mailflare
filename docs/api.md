@@ -41,11 +41,12 @@ The same operations are available to scripts through admin API keys with the `do
 
 ### Inbound provider endpoints
 
-Resend and Amazon SES deliver mail by calling the app, so these routes are public and authenticate themselves rather than using a session or API key:
+Resend, Amazon SES and Telnyx deliver mail by calling the app, so these routes are public and authenticate themselves rather than using a session or API key:
 
 | Route | Authenticated by |
 | --- | --- |
 | `POST /api/inbound/resend` | The Svix signature of the webhook secret Resend returned when Mailflare created the webhook |
+| `POST /api/inbound/telnyx` | The Ed25519 signature (`telnyx-signature-ed25519` over `telnyx-timestamp|body`) checked with the account's Telnyx public key, within five minutes |
 | `POST /api/inbound/ses?token=…` | The secret token in the subscription URL, the SNS topic ARN, and reading the message from the account's own S3 bucket |
 | `POST /api/inbound` | The HMAC from the Cloudflare relay Worker, used by self-hosted installs ([self-hosting](self-hosting.md)) |
 
