@@ -8,6 +8,7 @@ import { requestJson } from "./api";
 import ProviderCard from "./ProviderCard";
 import ResendDomainSection from "./ResendDomainSection";
 import SesSendingConfig from "./SesSendingConfig";
+import TelnyxDomainSection from "./TelnyxDomainSection";
 import type { Domain, SendingProvider } from "./types";
 
 type Option = Exclude<SendingProvider, "none">;
@@ -17,6 +18,7 @@ const OPTIONS: { id: Option; titleKey: TranslationKey; descriptionKey: Translati
 	{ id: "cloudflare", titleKey: "domains.opt.cfEmail", descriptionKey: "domains.opt.cfSendDesc" },
 	{ id: "resend", titleKey: "domains.providerResend", descriptionKey: "domains.opt.resendSendDesc" },
 	{ id: "ses", titleKey: "domains.providerSes", descriptionKey: "domains.opt.sesSendDesc" },
+	{ id: "telnyx", titleKey: "domains.providerTelnyx", descriptionKey: "domains.opt.telnyxSendDesc" },
 ];
 
 type Props = {
@@ -30,13 +32,14 @@ type Props = {
 	cloudflareOk: boolean;
 };
 
-type PresenceResponse = Partial<Present> & { resendStatus?: string | null; sesVerified?: boolean | null };
+type PresenceResponse = Partial<Present> & { resendStatus?: string | null; sesVerified?: boolean | null; telnyxStatus?: string | null };
 
 export default function SendingSetupSection({ domain, onChange, busy, message, cloudflareConfig, cloudflareOk }: Props) {
 	const { t } = useLanguage();
-	const [present, setPresent] = useState<Present>({ cloudflare: null, resend: null, ses: null });
+	const [present, setPresent] = useState<Present>({ cloudflare: null, resend: null, ses: null, telnyx: null });
 	const [resendStatus, setResendStatus] = useState<string | null>(null);
 	const [sesStatus, setSesStatus] = useState<string | null>(null);
+	const [telnyxStatus, setTelnyxStatus] = useState<string | null>(null);
 	const [reload, setReload] = useState(0);
 	const [removing, setRemoving] = useState<Option | null>(null);
 	const [error, setError] = useState("");
@@ -46,11 +49,12 @@ export default function SendingSetupSection({ domain, onChange, busy, message, c
 		requestJson<PresenceResponse>(`/api/domains/${domain.id}/sending`, "GET")
 			.then((data) => {
 				if (!active) return;
-				setPresent({ cloudflare: data.cloudflare ?? null, resend: data.resend ?? null, ses: data.ses ?? null });
+				setPresent({ cloudflare: data.cloudflare ?? null, resend: data.resend ?? null, ses: data.ses ?? null, telnyx: data.telnyx ?? null });
 				setResendStatus(data.resendStatus ?? null);
+				setTelnyxStatus(data.telnyxStatus ?? null);
 				setSesStatus(data.sesVerified === null || data.sesVerified === undefined ? null : data.sesVerified ? "verified" : "pending");
 			})
-			.catch(() => { if (active) setPresent({ cloudflare: null, resend: null, ses: null }); });
+			.catch(() => { if (active) setPresent({ cloudflare: null, resend: null, ses: null, telnyx: null }); });
 		return () => { active = false; };
 	}, [domain.id, domain.sendingProvider, reload]);
 
@@ -70,6 +74,7 @@ export default function SendingSetupSection({ domain, onChange, busy, message, c
 	const okFor = (option: Option): boolean | null =>
 		option === "cloudflare" ? cloudflareOk
 		: option === "resend" ? (resendStatus === null ? null : resendStatus === "verified")
+		: option === "telnyx" ? (telnyxStatus === null ? null : telnyxStatus === "verified")
 		: (sesStatus === null ? null : sesStatus === "verified");
 
 	return (
@@ -94,6 +99,7 @@ export default function SendingSetupSection({ domain, onChange, busy, message, c
 						>
 							{option.id === "cloudflare" ? cloudflareConfig
 								: option.id === "resend" ? <ResendDomainSection domainId={domain.id} onStatus={setResendStatus} />
+								: option.id === "telnyx" ? <TelnyxDomainSection domainId={domain.id} onStatus={setTelnyxStatus} />
 								: <SesSendingConfig domainId={domain.id} onStatus={setSesStatus} />}
 						</ProviderCard>
 					);
