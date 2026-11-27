@@ -45,9 +45,11 @@ export function requestBodyLimit(maxMb: number): number {
  * `baseBytes` is the size of the message without its files (Cloudflare counts the whole encoded message).
  */
 export function planAttachmentDelivery(provider: SendingProvider, sizes: number[], baseBytes: number): boolean[] {
-	let used = provider === "cloudflare" ? baseBytes : 0;
+	// Telnyx caps the JSON request at 8 MB, so base64 attachments get the same budget as Cloudflare.
+	const capped = provider === "cloudflare" || provider === "telnyx";
+	let used = capped ? baseBytes : 0;
 	return sizes.map((size) => {
-		if (provider === "cloudflare") {
+		if (capped) {
 			const encoded = Math.ceil(size / 3) * 4 + 2048;
 			const direct = size <= CLOUD_ATTACHMENT_THRESHOLD_BYTES && used + encoded <= CLOUDFLARE_MESSAGE_LIMIT_BYTES - MIME_SAFETY_MARGIN_BYTES;
 			if (direct) used += encoded;

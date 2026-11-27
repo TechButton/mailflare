@@ -391,6 +391,7 @@ export default function DomainsPage() {
                   <option value="cloudflare">{t("domains.cloudflareRouting")}</option>
                   <option value="resend">Resend</option>
                   <option value="ses">Amazon SES</option>
+                  <option value="telnyx">Telnyx</option>
                   <option value="none">{t("domains.notSelected")}</option>
                 </Select>
               </div>
@@ -418,6 +419,7 @@ export default function DomainsPage() {
                   <option value="cloudflare">{t("domains.cloudflareSending")}</option>
                   <option value="resend">Resend</option>
                   <option value="ses">Amazon SES</option>
+                  <option value="telnyx">Telnyx</option>
                   <option value="none">{t("domains.notSelected")}</option>
                 </Select>
               </div>

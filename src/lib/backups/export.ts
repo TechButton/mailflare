@@ -152,10 +152,10 @@ export async function restoreDatabaseRecords(db: D1Database, content: ArrayBuffe
 	const messageColumns = await listColumnNames(db, "messages");
 	// The backfill state columns of `mailbox_promotion_settings` (stall count, error, daily counter) arrive with a later migration than the table; they are job bookkeeping, so dropping them restarts nothing that matters.
 	const promotionSettingColumns = restoreTables.includes("mailbox_promotion_settings") ? await listColumnNames(db, "mailbox_promotion_settings") : null;
-	// These tables gained columns after they shipped (MTA-STS settings, the report kind); a backup from a newer
+	// These tables gained columns after they shipped (MTA-STS settings, the report kind, the Telnyx keys); a backup from a newer
 	// database drops them here instead of failing after the teardown.
 	const deliverabilityColumns = new Map<string, Set<string>>();
-	for (const table of ["domain_deliverability", "deliverability_reports"]) if (existing.has(table)) deliverabilityColumns.set(table, await listColumnNames(db, table));
+	for (const table of ["domain_deliverability", "deliverability_reports", "app_settings"]) if (existing.has(table)) deliverabilityColumns.set(table, await listColumnNames(db, table));
 	// Mark users deleted before removing them: the passkey trigger permits the
 	// cascade to remove the last credential only for an account that is being
 	// purged. Deleting users first also empties the table the restore inserts

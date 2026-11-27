@@ -22,7 +22,7 @@ async function senderTranslator(env: CloudflareEnv, value: string | undefined): 
 
 /**
  * Files the provider cannot carry in the message go out as Shared Files download links (filename and size kept)
- * instead of failing the send. Cloudflare has a 5 MiB message cap; for other providers see `planAttachmentDelivery`.
+ * instead of failing the send. Cloudflare and Telnyx are held to 5 MiB; for other providers see `planAttachmentDelivery`.
  */
 export async function prepareOutboundAttachments(
 	env: CloudflareEnv,
@@ -46,16 +46,17 @@ export async function prepareOutboundAttachments(
 		if (!attachment.storageId) throw new Error("Large attachment was not stored in object storage");
 		linked.push({ filename: attachment.filename, size, url: await getOrCreateSharedAttachmentUrl(env, attachment.storageId, message.publicOrigin) });
 	}
-	const cloudflare = provider === "cloudflare";
+	const capped = provider === "cloudflare" || provider === "telnyx";
+	const providerName = provider === "telnyx" ? "Telnyx" : "Cloudflare";
 	if (!linked.length) {
-		if (cloudflare && estimatedSize > GENERAL_MESSAGE_LIMIT_BYTES - MIME_SAFETY_MARGIN_BYTES) throw new Error("Message exceeds Cloudflare's 5 MiB email size limit");
+		if (capped && estimatedSize > GENERAL_MESSAGE_LIMIT_BYTES - MIME_SAFETY_MARGIN_BYTES) throw new Error(`Message exceeds ${providerName}'s 5 MiB email size limit`);
 		return { attachments: direct, html: message.html, text: message.text };
 	}
 	const notice = sharedFileNotice(linked, SHARED_ATTACHMENT_LINK_DAYS, await senderTranslator(env, message.locale));
 	const text = notice.textBlock(message.text);
 	const html = `${message.html ?? ""}${notice.htmlBlock}`;
-	if (cloudflare && estimatedSize + encoder.encode(notice.text + notice.html + notice.intro + notice.intro).byteLength + 4096 > GENERAL_MESSAGE_LIMIT_BYTES - MIME_SAFETY_MARGIN_BYTES) {
-		throw new Error("Message exceeds Cloudflare's 5 MiB email size limit even with download links");
+	if (capped && estimatedSize + encoder.encode(notice.text + notice.html + notice.intro + notice.intro).byteLength + 4096 > GENERAL_MESSAGE_LIMIT_BYTES - MIME_SAFETY_MARGIN_BYTES) {
+		throw new Error(`Message exceeds ${providerName}'s 5 MiB email size limit even with download links`);
 	}
 	return { attachments: direct, html, text };
 }

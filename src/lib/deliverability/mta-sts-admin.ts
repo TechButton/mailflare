@@ -39,7 +39,7 @@ export type MtaStsResult =
 
 const fail = (status: number, code: string, message: string): MtaStsResult => ({ kind: "error", status, code, message });
 const isStsRecord = (content: string) => /^\s*v=STSv1\s*(?:;|$)/i.test(content);
-const KNOWN_MX = [/\.mx\.cloudflare\.net$/, /^inbound-smtp\.[a-z0-9-]+\.amazonaws\.com$/];
+const KNOWN_MX = [/\.mx\.cloudflare\.net$/, /^inbound-smtp\.[a-z0-9-]+\.amazonaws\.com$/, /^mx\.telnyx\.com$/];
 const unverified = (mx: string[]) => mx.filter((host) => !KNOWN_MX.some((pattern) => pattern.test(host)));
 
 type Row = { mode: MtaStsMode; policyId: string | null; mx: string | null; maxAge: number; servedMaxAge: number | null; verifiedAt: Date | null; retireAfter: Date | null };

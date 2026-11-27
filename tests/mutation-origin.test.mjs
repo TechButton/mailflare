@@ -95,6 +95,7 @@ const EXEMPT = {
 	"internal/not-found/route.ts": "answers 404 and does nothing",
 	"internal/queue/[name]/route.ts": "QStash-signed queue delivery, Vercel only",
 	"queues/route.ts": "Vercel Queues delivery to a private function, Vercel only",
+	"inbound/telnyx/route.ts": "Ed25519-signed provider webhook",
 	"inbound/ses/route.ts": "SNS endpoint guarded by a secret URL token",
 	"provider-events/resend/route.ts": "Svix-signed provider webhook (bounce and complaint events)",
 	"provider-events/ses/route.ts": "SNS endpoint guarded by a secret URL token and the SNS signature",

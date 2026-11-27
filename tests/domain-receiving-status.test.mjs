@@ -28,6 +28,7 @@ const mocks = {
 	"@/lib/domains/receiving-dns": "export async function listDomainMx(){return [];}export class MxConflictError extends Error{}",
 	"@/lib/domains/resend-receiving": "export async function setupResendReceiving(){}export async function removeResendReceiving(){}export async function hasResendReceivingConfig(){return false;}",
 	"@/lib/aws/ses-receiving": "export async function setupSesReceiving(){}export async function removeSesReceiving(){}export async function hasSesReceivingConfig(){return false;}",
+	"@/lib/domains/telnyx-domain": "export async function setupTelnyxReceiving(){}export async function removeTelnyxReceiving(){}export async function hasTelnyxReceivingConfig(){return false;}",
 	"@/lib/mailboxes/domain-addresses": "export async function ensureMailboxDomainRouting(){}",
 };
 
