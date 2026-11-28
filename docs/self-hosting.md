@@ -1,5 +1,7 @@
 # Self-hosting Mailflare (Docker)
 
+Deploying to Railway has its own notes: [Railway](railway.md).
+
 Mailflare can run as a single container on any host instead of Cloudflare
 Workers. The same code serves both; the container provides its own database
 (SQLite on a volume), blob storage (files on the same volume), job queue,
