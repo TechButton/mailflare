@@ -153,6 +153,7 @@ and the DNS page shows what to set by hand.
 | `S3_BUCKET`, `S3_REGION`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY` | unset | Store blobs in AWS S3; the keys fall back to `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`. Backblaze wins if both are set |
 | `RESEND_API_KEY` | unset | Resend key; overrides one saved in the app |
 | `TELNYX_API_KEY`, `TELNYX_PUBLIC_KEY` | unset | Telnyx API key and webhook public key, used when none are saved in the app |
+| `BREVO_API_KEY` | unset | Brevo key for sending; overrides one saved in the app |
 | `RESEND_BASE_URL` | `https://api.resend.com` | Base URL of the Resend API; set it to use a Resend-compatible service |
 | `RESEND_CUSTOM_MESSAGE_ID` | `true` | Set to `false` for a Resend-compatible service that refuses a custom `Message-ID` header |
 | `RESEND_OMIT_HEADERS` | empty | Comma-separated headers left out of Resend sends, for a compatible service that refuses them (e.g. `Auto-Submitted`) |

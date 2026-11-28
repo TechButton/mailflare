@@ -91,7 +91,7 @@ export const domains = sqliteTable(
 			.default("pending"),
 		routingStatus: text("routing_status"),
 		sendingSubdomainTag: text("sending_subdomain_tag"),
-		sendingProvider: text("sending_provider", { enum: ["none", "cloudflare", "resend", "ses", "telnyx"] }).notNull().default("none"),
+		sendingProvider: text("sending_provider", { enum: ["none", "cloudflare", "resend", "ses", "telnyx", "brevo"] }).notNull().default("none"),
 		receivingProvider: text("receiving_provider", { enum: ["none", "cloudflare", "resend", "ses", "telnyx"] }).notNull().default("cloudflare"),
 		sendingRequested: bool("sending_requested").notNull().default(false),
 		sendingEnabled: bool("sending_enabled").notNull().default(false),
@@ -1533,6 +1533,8 @@ export const appSettings = sqliteTable("app_settings", {
 	sesReceiving: text("ses_receiving"),
 	/** JSON: Telnyx API key and webhook public key (see src/lib/email/telnyx-config.ts). */
 	telnyxConfig: text("telnyx_config"),
+	/** Brevo API key (see src/lib/email/brevo-config.ts). */
+	brevoApiKey: text("brevo_api_key"),
 	resendWebhookId: text("resend_webhook_id"),
 	resendWebhookSecret: text("resend_webhook_secret"),
 	iconKey: text("icon_key"),

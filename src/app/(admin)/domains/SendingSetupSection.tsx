@@ -5,6 +5,7 @@ import { confirmDestructive } from "@/components/ui/confirm-dialog";
 import { useLanguage } from "@/components/language-provider";
 import type { TranslationKey } from "@/lib/i18n/types";
 import { requestJson } from "./api";
+import BrevoDomainSection from "./BrevoDomainSection";
 import ProviderCard from "./ProviderCard";
 import ResendDomainSection from "./ResendDomainSection";
 import SesSendingConfig from "./SesSendingConfig";
@@ -19,6 +20,7 @@ const OPTIONS: { id: Option; titleKey: TranslationKey; descriptionKey: Translati
 	{ id: "resend", titleKey: "domains.providerResend", descriptionKey: "domains.opt.resendSendDesc" },
 	{ id: "ses", titleKey: "domains.providerSes", descriptionKey: "domains.opt.sesSendDesc" },
 	{ id: "telnyx", titleKey: "domains.providerTelnyx", descriptionKey: "domains.opt.telnyxSendDesc" },
+	{ id: "brevo", titleKey: "domains.providerBrevo", descriptionKey: "domains.opt.brevoSendDesc" },
 ];
 
 type Props = {
@@ -32,14 +34,15 @@ type Props = {
 	cloudflareOk: boolean;
 };
 
-type PresenceResponse = Partial<Present> & { resendStatus?: string | null; sesVerified?: boolean | null; telnyxStatus?: string | null };
+type PresenceResponse = Partial<Present> & { resendStatus?: string | null; sesVerified?: boolean | null; telnyxStatus?: string | null; brevoStatus?: string | null };
 
 export default function SendingSetupSection({ domain, onChange, busy, message, cloudflareConfig, cloudflareOk }: Props) {
 	const { t } = useLanguage();
-	const [present, setPresent] = useState<Present>({ cloudflare: null, resend: null, ses: null, telnyx: null });
+	const [present, setPresent] = useState<Present>({ cloudflare: null, resend: null, ses: null, telnyx: null, brevo: null });
 	const [resendStatus, setResendStatus] = useState<string | null>(null);
 	const [sesStatus, setSesStatus] = useState<string | null>(null);
 	const [telnyxStatus, setTelnyxStatus] = useState<string | null>(null);
+	const [brevoStatus, setBrevoStatus] = useState<string | null>(null);
 	const [reload, setReload] = useState(0);
 	const [removing, setRemoving] = useState<Option | null>(null);
 	const [error, setError] = useState("");
@@ -49,12 +52,13 @@ export default function SendingSetupSection({ domain, onChange, busy, message, c
 		requestJson<PresenceResponse>(`/api/domains/${domain.id}/sending`, "GET")
 			.then((data) => {
 				if (!active) return;
-				setPresent({ cloudflare: data.cloudflare ?? null, resend: data.resend ?? null, ses: data.ses ?? null, telnyx: data.telnyx ?? null });
+				setPresent({ cloudflare: data.cloudflare ?? null, resend: data.resend ?? null, ses: data.ses ?? null, telnyx: data.telnyx ?? null, brevo: data.brevo ?? null });
+				setBrevoStatus(data.brevoStatus ?? null);
 				setResendStatus(data.resendStatus ?? null);
 				setTelnyxStatus(data.telnyxStatus ?? null);
 				setSesStatus(data.sesVerified === null || data.sesVerified === undefined ? null : data.sesVerified ? "verified" : "pending");
 			})
-			.catch(() => { if (active) setPresent({ cloudflare: null, resend: null, ses: null, telnyx: null }); });
+			.catch(() => { if (active) setPresent({ cloudflare: null, resend: null, ses: null, telnyx: null, brevo: null }); });
 		return () => { active = false; };
 	}, [domain.id, domain.sendingProvider, reload]);
 
@@ -75,6 +79,7 @@ export default function SendingSetupSection({ domain, onChange, busy, message, c
 		option === "cloudflare" ? cloudflareOk
 		: option === "resend" ? (resendStatus === null ? null : resendStatus === "verified")
 		: option === "telnyx" ? (telnyxStatus === null ? null : telnyxStatus === "verified")
+		: option === "brevo" ? (brevoStatus === null ? null : brevoStatus === "verified")
 		: (sesStatus === null ? null : sesStatus === "verified");
 
 	return (
@@ -100,6 +105,7 @@ export default function SendingSetupSection({ domain, onChange, busy, message, c
 							{option.id === "cloudflare" ? cloudflareConfig
 								: option.id === "resend" ? <ResendDomainSection domainId={domain.id} onStatus={setResendStatus} />
 								: option.id === "telnyx" ? <TelnyxDomainSection domainId={domain.id} onStatus={setTelnyxStatus} />
+								: option.id === "brevo" ? <BrevoDomainSection domainId={domain.id} onStatus={setBrevoStatus} />
 								: <SesSendingConfig domainId={domain.id} onStatus={setSesStatus} />}
 						</ProviderCard>
 					);

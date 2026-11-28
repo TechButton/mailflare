@@ -152,7 +152,7 @@ export async function restoreDatabaseRecords(db: D1Database, content: ArrayBuffe
 	const messageColumns = await listColumnNames(db, "messages");
 	// The backfill state columns of `mailbox_promotion_settings` (stall count, error, daily counter) arrive with a later migration than the table; they are job bookkeeping, so dropping them restarts nothing that matters.
 	const promotionSettingColumns = restoreTables.includes("mailbox_promotion_settings") ? await listColumnNames(db, "mailbox_promotion_settings") : null;
-	// These tables gained columns after they shipped (MTA-STS settings, the report kind, the Telnyx keys); a backup from a newer
+	// These tables gained columns after they shipped (MTA-STS settings, the report kind, the Telnyx and Brevo keys); a backup from a newer
 	// database drops them here instead of failing after the teardown.
 	const deliverabilityColumns = new Map<string, Set<string>>();
 	for (const table of ["domain_deliverability", "deliverability_reports", "app_settings"]) if (existing.has(table)) deliverabilityColumns.set(table, await listColumnNames(db, table));

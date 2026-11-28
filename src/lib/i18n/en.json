@@ -3009,5 +3009,19 @@
 	"domains.forceRemoveConfirm": "{reason}\n\nForce remove {host} anyway? Mailflare will try to remove its _mta-sts and _smtp._tls DNS records, then delete the domain, all its mailboxes and all their messages, even if that fails. Mail servers may keep applying the cached MTA-STS policy for a while. Afterwards you get the DNS records to remove by hand.\n\nType {host} to confirm.",
 	"domains.forceRemoved": "{host} removed",
 	"domains.forceRemovedRecords": "Remove these DNS records yourself:",
-	"domains.forceRemovedCache": "Mail servers may keep applying the old MTA-STS policy until {date}."
+	"domains.forceRemovedCache": "Mail servers may keep applying the old MTA-STS policy until {date}.",
+	"domains.providerBrevo": "Brevo",
+	"domains.opt.brevoSendDesc": "Send through your Brevo account.",
+	"brevo.apiKey": "API key",
+	"brevo.apiKeyHint": "Shared by every domain using Brevo",
+	"brevo.keyInstructions": "Create a key under SMTP & API → API Keys in Brevo.",
+	"brevo.removeConfirm": "Remove the Brevo API key? Every domain sending through Brevo will stop sending.",
+	"brevo.keySaved": "Key saved",
+	"brevo.keyFromEnv": "Set by BREVO_API_KEY",
+	"brevo.unreachable": "Could not reach Brevo",
+	"brevo.verified": "Domain authenticated in Brevo",
+	"brevo.waiting": "DNS records added, waiting for Brevo to authenticate ({status})",
+	"brevo.notAdded": "Domain is not added to Brevo yet",
+	"brevo.domainHint": "Authenticated sender domain in Brevo",
+	"brevo.existingPolicy": "This domain already has its own DMARC record, so Mailflare left it alone."
 }

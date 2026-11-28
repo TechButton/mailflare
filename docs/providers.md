@@ -80,6 +80,22 @@ Each webhook is verified with Ed25519 over `telnyx-timestamp|body` against your 
 
 Telnyx inboxes are per address, so mail to an address Mailflare does not know about, including catch-all routing rules, never arrives. When you add a mailbox or alias, the receiving card shows the missing inbox and **Setup receiving** creates it. Telnyx usernames allow only letters, digits, dots, hyphens and underscores, so an address like `a+b@` cannot get an inbox. Telnyx does not document the exact `email.received` payload yet, which is why receiving is marked as a preview: Mailflare uses the payload when it carries the message and otherwise fetches it by id. `APP_URL` has to be a public HTTPS address.
 
+## Brevo (sending only)
+
+Brevo can send for a domain; it cannot receive through Mailflare, so pair it with any receiving provider (for example Telnyx). Create a key under **SMTP & API → API Keys** in Brevo and save it in the domain's Brevo card, or set `BREVO_API_KEY` (which wins over a saved key). Only the primary administrator can change it.
+
+**Setup** adds the domain to Brevo, publishes the records Brevo returns to the Cloudflare zone, and asks Brevo to authenticate it. An existing DMARC record is left alone. **Clean up** deletes the domain from Brevo and its records, except DMARC.
+
+Differences to know about:
+
+- Brevo assigns the `Message-ID`; Mailflare stores the one Brevo returns.
+- Brevo's documentation says standard email headers are not supported and does not say whether `In-Reply-To` and `References` are kept, so replies may not thread in the recipient's mail client. If Brevo refuses a header, the message is sent again without custom headers.
+- Brevo has no inline-image (`Content-ID`) field, so inline images arrive as ordinary attachments.
+- File types outside Brevo's allowed list go as download links.
+- No idempotency key is sent, so a send retried after a lost response can arrive twice.
+- Bounces and complaints from Brevo are not fed into the suppression list.
+- Brevo sets its own plan limits and may add its branding to mail sent on the free plan.
+
 ## Bounces and complaints
 
 Resend and SES can report permanent bounces and spam complaints back to Mailflare, which keeps a per-domain suppression list. It is off by default; see [deliverability.md](deliverability.md).
@@ -122,6 +138,8 @@ You cannot clean up the provider that is currently selected.
 | `TELNYX_API_KEY` | Telnyx API key used when none is saved in the app |
 | `TELNYX_PUBLIC_KEY` | Telnyx public key (base64) for verifying inbound webhooks, used when none is saved in the app |
 | `TELNYX_BASE_URL` | Base URL of the Telnyx API (default `https://api.telnyx.com/v2`) |
+| `BREVO_API_KEY` | Brevo API key for sending; overrides one saved in the app |
+| `BREVO_BASE_URL` | Base URL of the Brevo API (default `https://api.brevo.com/v3`) |
 | `APP_URL` | Public HTTPS address; required for Resend, SES and Telnyx receiving, because the providers call this app |
 
 Settings saved in the app take precedence over these variables. Keys saved in the app are stored as plain text in the `app_settings` table (as the AI provider key already is), so protect database backups accordingly.

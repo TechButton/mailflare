@@ -559,6 +559,12 @@
       "statements": [
         "ALTER TABLE \"app_settings\" ADD COLUMN \"telnyx_config\" text;"
       ]
+    },
+    {
+      "name": "0028_brevo_provider.sql",
+      "statements": [
+        "ALTER TABLE \"app_settings\" ADD COLUMN \"brevo_api_key\" text;"
+      ]
     }
   ]
 }

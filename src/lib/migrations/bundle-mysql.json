@@ -517,6 +517,12 @@
       "statements": [
         "ALTER TABLE `app_settings` ADD `telnyx_config` longtext;"
       ]
+    },
+    {
+      "name": "0028_brevo_provider.sql",
+      "statements": [
+        "ALTER TABLE `app_settings` ADD `brevo_api_key` text;"
+      ]
     }
   ]
 }

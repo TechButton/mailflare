@@ -1,5 +1,6 @@
 import type { AttachmentContent } from "./attachment-types";
 import { planAttachmentDelivery } from "./attachment-limits";
+import { isBrevoAttachmentName } from "./brevo-attachment-utils";
 import type { SendingProvider } from "./outbound-provider-types";
 import { SHARED_ATTACHMENT_LINK_DAYS, getOrCreateSharedAttachmentUrl } from "./shared-attachments";
 import { sharedFileNotice } from "./shared-file-notice";
@@ -38,7 +39,9 @@ export async function prepareOutboundAttachments(
 	let estimatedSize = baseSize;
 	for (const [index, attachment] of attachments.entries()) {
 		const size = attachment.content.byteLength;
-		if (!plan[index]) {
+		// Brevo refuses file types outside its list, so those go as links too.
+		const refused = provider === "brevo" && !isBrevoAttachmentName(attachment.filename);
+		if (!plan[index] && !refused) {
 			direct.push(attachment);
 			estimatedSize += Math.ceil(size / 3) * 4 + 2048;
 			continue;

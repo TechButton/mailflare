@@ -4,7 +4,7 @@ Mailflare exposes APIs for domain, account, and mailbox management, and for send
 
 ## Domain management
 
-Adding or removing a domain from Mailflare also updates Cloudflare Email Routing and sending resources. Each domain has a `sendingProvider` and a `receivingProvider` (`none`, `cloudflare`, `resend` or `ses`); see [Sending and receiving providers](providers.md).
+Adding or removing a domain from Mailflare also updates Cloudflare Email Routing and sending resources. Each domain has a `sendingProvider` and a `receivingProvider` (`none`, `cloudflare`, `resend`, `ses` or `telnyx`; `sendingProvider` can also be `brevo`); see [Sending and receiving providers](providers.md).
 
 | Mailflare route | Purpose |
 | --- | --- |

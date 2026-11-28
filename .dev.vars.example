@@ -21,6 +21,7 @@ CF_TOKEN=your_api_token_with_zone_email_permissions
 # AWS_REGION=us-east-1
 # TELNYX_API_KEY=KEY...
 # TELNYX_PUBLIC_KEY=base64_public_key
+# BREVO_API_KEY=xkeysib-...
 # Receiving through Resend or SES needs a public HTTPS address.
 # APP_URL=https://mail.example.com
 

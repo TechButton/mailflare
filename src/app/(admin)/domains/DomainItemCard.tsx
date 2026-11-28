@@ -18,9 +18,9 @@ import {
   MoreVertical,
   Trash2,
 } from "@/components/icons";
-import type { DomainItemCardProps, ReceivingProvider } from "./types";
+import type { DomainItemCardProps, ReceivingProvider, SendingProvider } from "./types";
 
-const PROVIDER_NAMES: Record<ReceivingProvider, string> = { none: "", cloudflare: "Cloudflare", resend: "Resend", ses: "Amazon SES", telnyx: "Telnyx" };
+const PROVIDER_NAMES: Record<ReceivingProvider | SendingProvider, string> = { none: "", brevo: "Brevo", cloudflare: "Cloudflare", resend: "Resend", ses: "Amazon SES", telnyx: "Telnyx" };
 
 function StatusIcon({ ok, className }: { ok: boolean; className?: string }) {
   if (ok) return <Check className={cn(className, "text-green-600")} />;
@@ -94,7 +94,7 @@ export default function DomainItemCard({
                 {t("domains.badge.receivingVia", { provider: PROVIDER_NAMES[item.receivingProvider] })}
               </Badge>
             )}
-            {item.sendingProvider === "resend" || item.sendingProvider === "ses" || item.sendingProvider === "telnyx" ? (
+            {item.sendingProvider === "resend" || item.sendingProvider === "ses" || item.sendingProvider === "telnyx" || item.sendingProvider === "brevo" ? (
               <Badge variant="outline" className="gap-1">
                 <StatusIcon ok className="h-3 w-3" />
                 {t("domains.badge.sendingVia", { provider: PROVIDER_NAMES[item.sendingProvider] })}

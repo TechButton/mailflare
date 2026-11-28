@@ -69,7 +69,7 @@ export type CreateDomainInput = {
 	enableSending?: boolean;
 	replaceMxRecords?: boolean;
 	skipDns?: boolean;
-	sendingProvider?: "none" | "cloudflare" | "resend" | "ses" | "telnyx";
+	sendingProvider?: "none" | "cloudflare" | "resend" | "ses" | "telnyx" | "brevo";
 	receivingProvider?: "none" | "cloudflare" | "resend" | "ses" | "telnyx";
 };
 

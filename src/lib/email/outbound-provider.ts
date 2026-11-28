@@ -8,11 +8,14 @@ import { fetchSentMessageId, resendClient, resendOmittedHeaders, resendSetsMessa
 import { getTelnyxClient } from "@/lib/email/telnyx-config";
 import { sendWithTelnyx } from "@/lib/email/telnyx-send";
 import { telnyxClient } from "@/lib/email/telnyx-api";
+import { brevoClient } from "@/lib/email/brevo-api";
+import { getBrevoClient } from "@/lib/email/brevo-config";
+import { sendWithBrevo } from "@/lib/email/brevo-send";
 import type { OutboundProviderConfig, OutboundProviderMessage, ResendKeyStatus } from "@/lib/email/outbound-provider-types";
 
 /**
  * Each domain picks its own sender: Cloudflare Email Sending, Resend, Amazon SES,
- * Telnyx, or none
+ * Telnyx, Brevo, or none
  * (receive-only). Receiving and storage always stay on Cloudflare. The Resend key
  * is shared by every domain; a RESEND_API_KEY secret wins, so it never has to be
  * stored in the database, and the admin setting is used without one.
@@ -50,6 +53,7 @@ export async function getOutboundProviderConfig(env: CloudflareEnv, fromAddress:
 	if (domain.provider === "resend") return { provider: "resend", apiKey: (await getResendClient(env)).apiKey };
 	if (domain.provider === "ses") return { provider: "ses", config: await requireAwsConfig(env) };
 	if (domain.provider === "telnyx") return { provider: "telnyx", apiKey: (await getTelnyxClient(env)).apiKey };
+	if (domain.provider === "brevo") return { provider: "brevo", apiKey: (await getBrevoClient(env)).apiKey };
 	return { provider: "cloudflare" };
 }
 
@@ -125,6 +129,7 @@ export async function sendThroughProvider(
 	if (config.provider === "resend") return sendWithResend(env, resendClient(env, config.apiKey), message, idempotencyKey);
 	if (config.provider === "ses") return sendSesEmail(config.config, message);
 	if (config.provider === "telnyx") return sendWithTelnyx(telnyxClient(env, config.apiKey), message, idempotencyKey);
+	if (config.provider === "brevo") return sendWithBrevo(brevoClient(env, config.apiKey), message);
 	const response = await env.EMAIL.send({
 		from: message.from,
 		to: message.to,

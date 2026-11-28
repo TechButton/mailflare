@@ -1,12 +1,13 @@
 import type { AwsConfig } from "@/lib/aws/aws-types";
 
-export type SendingProvider = "none" | "cloudflare" | "resend" | "ses" | "telnyx";
+export type SendingProvider = "none" | "cloudflare" | "resend" | "ses" | "telnyx" | "brevo";
 
 export type OutboundProviderConfig =
 	| { provider: "cloudflare" }
 	| { provider: "resend"; apiKey: string }
 	| { provider: "ses"; config: AwsConfig }
-	| { provider: "telnyx"; apiKey: string };
+	| { provider: "telnyx"; apiKey: string }
+	| { provider: "brevo"; apiKey: string };
 
 export type OutboundProviderAttachment = {
 	filename: string;

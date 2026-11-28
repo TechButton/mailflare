@@ -197,6 +197,13 @@
       "when": 1795027668152,
       "tag": "0027_telnyx_provider",
       "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "5",
+      "when": 1795027668153,
+      "tag": "0028_brevo_provider",
+      "breakpoints": true
     }
   ]
 }

@@ -420,6 +420,7 @@ export default function DomainsPage() {
                   <option value="resend">Resend</option>
                   <option value="ses">Amazon SES</option>
                   <option value="telnyx">Telnyx</option>
+                  <option value="brevo">Brevo</option>
                   <option value="none">{t("domains.notSelected")}</option>
                 </Select>
               </div>
