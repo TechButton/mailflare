@@ -8,6 +8,9 @@ export type TelnyxDomain = {
 	domain: string;
 	status: TelnyxDomainStatus | string;
 	inbound_enabled?: boolean;
+	inbound?: { enabled?: boolean; catch_all?: boolean; mx_required?: boolean } | null;
+	usable_for_inbound?: boolean;
+	usable_for_sending?: boolean;
 	type?: string;
 };
 

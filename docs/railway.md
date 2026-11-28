@@ -22,7 +22,7 @@ Railway runs the same Node server as the [Docker self-hosting](self-hosting.md) 
 | `TRUST_PROXY` | `1` | Railway terminates HTTPS in front of the app |
 | `SMTP_INBOUND_PORT` | `0` | No built-in SMTP listener |
 
-Provider keys can be saved on the domain page or set as variables (`TELNYX_API_KEY`, `TELNYX_PUBLIC_KEY`, `BREVO_API_KEY`, `RESEND_API_KEY`). Set `CF_TOKEN` if Mailflare should manage DNS in your Cloudflare zones; otherwise add the records it lists yourself.
+**Set your sending provider's key as a variable before opening `/setup`** (`BREVO_API_KEY`, `RESEND_API_KEY`, `TELNYX_API_KEY`, or the three `AWS_*` variables). Setup does not continue without outbound mail, and keys saved in the app only become possible afterwards. Set `TELNYX_PUBLIC_KEY` too for Telnyx receiving, or save it on the domain page later. Set `CF_TOKEN` if Mailflare should manage DNS in your Cloudflare zones; otherwise add the records it lists yourself.
 
 5. Set the healthcheck path to `/api/setup/status`, deploy, then open `/setup` on your domain.
 

@@ -1,4 +1,4 @@
-import { getEmailAddress } from "@/lib/email/address";
+import { getEmailAddress, parseEmailAddressParts } from "@/lib/email/address";
 import { TelnyxApiError, telnyxRequest } from "@/lib/email/telnyx-api";
 import type { TelnyxClient } from "@/lib/email/telnyx-api-types";
 import type { OutboundProviderMessage } from "@/lib/email/outbound-provider-types";
@@ -27,6 +27,12 @@ export function telnyxIdempotencyKey(value: string | undefined): string | null {
 	return cleaned ? cleaned : null;
 }
 
+/** Telnyx rejects RFC 5322 `Name <addr>` strings: send a bare address, or `{ email, name }` when there is a display name. */
+function toTelnyxAddress(value: string): string | { email: string; name: string } {
+	const { name, address } = parseEmailAddressParts(value);
+	return name ? { email: address, name } : address;
+}
+
 export function telnyxPayload(message: OutboundProviderMessage, messageId: string, options: { threadingHeaders: boolean }) {
 	const headers: Record<string, string> = {};
 	let replyTo: string | null = null;
@@ -39,11 +45,11 @@ export function telnyxPayload(message: OutboundProviderMessage, messageId: strin
 	}
 	if (options.threadingHeaders) headers["Message-ID"] = messageId;
 	return {
-		from: message.from,
-		to: message.to,
-		...(message.cc?.length ? { cc: message.cc } : {}),
-		...(message.bcc?.length ? { bcc: message.bcc } : {}),
-		...(replyTo ? { reply_to: replyTo } : {}),
+		from: toTelnyxAddress(message.from),
+		to: message.to.map(toTelnyxAddress),
+		...(message.cc?.length ? { cc: message.cc.map(toTelnyxAddress) } : {}),
+		...(message.bcc?.length ? { bcc: message.bcc.map(toTelnyxAddress) } : {}),
+		...(replyTo ? { reply_to: toTelnyxAddress(replyTo) } : {}),
 		subject: message.subject,
 		...(message.html ? { html_body: message.html } : {}),
 		...(message.text ? { text_body: message.text } : {}),

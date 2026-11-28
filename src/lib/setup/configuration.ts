@@ -2,6 +2,14 @@ import { getDatabaseConfig } from "@/db/with-database";
 import { hasCloudflareCredentials, isNodeRuntime, isVercelRuntime } from "@/lib/runtime";
 import type { SetupRequirementCheck } from "./types";
 
+/** These providers send over their own API, so they need no SMTP relay; each is chosen per domain after setup. */
+function hasProviderApiKey(env: CloudflareEnv): boolean {
+	const vars = env as unknown as Record<string, string | undefined>;
+	const set = (name: string) => !!vars[name]?.trim();
+	return set("RESEND_API_KEY") || set("TELNYX_API_KEY") || set("BREVO_API_KEY")
+		|| (set("AWS_ACCESS_KEY_ID") && set("AWS_SECRET_ACCESS_KEY") && (set("AWS_REGION") || set("AWS_DEFAULT_REGION")));
+}
+
 export function getSetupRequirementChecks(env: CloudflareEnv): SetupRequirementCheck[] {
 	const hasApiToken = !!env.CF_TOKEN?.trim();
 	const hasGlobalKey = !!env.CF_API_KEY?.trim() && !!env.CF_EMAIL?.trim();
@@ -17,8 +25,8 @@ export function getSetupRequirementChecks(env: CloudflareEnv): SetupRequirementC
 			},
 			{
 				key: "Outbound mail",
-				configured: mailer?.configured === true,
-				message: "Set SMTP_URL, or CF_ACCOUNT_ID with CF_TOKEN to send through Cloudflare. Receiving works without it.",
+				configured: mailer?.configured === true || hasProviderApiKey(env),
+				message: "Set SMTP_URL, CF_ACCOUNT_ID with CF_TOKEN, or an API key for Resend, Telnyx, Brevo or Amazon SES. Receiving works without it.",
 			},
 			{
 				key: "Cloudflare API credentials (optional)",

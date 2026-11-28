@@ -146,7 +146,7 @@ test("the send payload maps fields, drops reserved headers and inlines attachmen
 			{ filename: "i.png", type: "image/png", content: new Uint8Array([1]).buffer, disposition: "inline", contentId: "<img1>" },
 		],
 	}, "<new@example.com>", { threadingHeaders: true });
-	assert.equal(payload.from, "Me <me@example.com>");
+	assert.deepEqual(payload.from, { email: "me@example.com", name: "Me" });
 	assert.deepEqual(payload.to, ["you@example.net"]);
 	assert.equal(payload.cc, undefined, "empty cc is omitted");
 	assert.deepEqual(payload.bcc, ["hidden@example.org"]);
@@ -161,6 +161,32 @@ test("the send payload maps fields, drops reserved headers and inlines attachmen
 	const bare = send.telnyxPayload({ from: "me@example.com", to: ["you@example.net"], subject: "Hi", text: "x", headers: { "In-Reply-To": "<p@x>" } }, "<n@x>", { threadingHeaders: false });
 	assert.equal(bare.headers, undefined);
 	assert.equal(bare.attachments, undefined);
+});
+
+test("addresses with a display name are sent as objects in every field", () => {
+	const payload = send.telnyxPayload({
+		from: '"Chen, Maya" <maya@example.com>',
+		to: ["Sam <sam@example.net>", "<bare@example.net>"],
+		cc: ["Lee <lee@example.net>"],
+		bcc: ["Kim <kim@example.net>"],
+		subject: "Hi",
+		text: "x",
+		headers: { "Reply-To": "Help Desk <help@example.com>" },
+	}, "<n@example.com>", { threadingHeaders: true });
+	assert.deepEqual(payload.from, { email: "maya@example.com", name: "Chen, Maya" });
+	assert.deepEqual(payload.to, [{ email: "sam@example.net", name: "Sam" }, "bare@example.net"]);
+	assert.deepEqual(payload.cc, [{ email: "lee@example.net", name: "Lee" }]);
+	assert.deepEqual(payload.bcc, [{ email: "kim@example.net", name: "Kim" }]);
+	assert.deepEqual(payload.reply_to, { email: "help@example.com", name: "Help Desk" });
+});
+
+test("inbound is read from every shape Telnyx uses", () => {
+	const enabled = domainUtils.isTelnyxInboundEnabled;
+	assert.equal(enabled({ inbound: { enabled: true, catch_all: false, mx_required: true }, usable_for_inbound: true }), true);
+	assert.equal(enabled({ usable_for_inbound: true }), true);
+	assert.equal(enabled({ inbound_enabled: true }), true);
+	assert.equal(enabled({ inbound: { enabled: false }, usable_for_inbound: false }), false);
+	for (const domain of [{}, { inbound: null }, null, undefined]) assert.equal(enabled(domain), false);
 });
 
 test("idempotency keys keep only the characters Telnyx accepts", () => {

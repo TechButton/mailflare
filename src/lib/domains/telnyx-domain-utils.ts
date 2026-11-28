@@ -1,3 +1,5 @@
+import type { TelnyxDomain } from "@/lib/email/telnyx-api-types";
+
 export const normalizeDnsValue = (value: string) => value.replace(/^"|"$/g, "").trim().toLowerCase().replace(/\.$/, "");
 
 /** Telnyx names records absolutely or relative to the domain; Cloudflare needs them absolute. */
@@ -6,6 +8,10 @@ export function absoluteTelnyxName(host: string, hostname: string): string {
 	if (!name || name === "@") return hostname;
 	return name === hostname || name.endsWith(`.${hostname}`) ? name : `${name}.${hostname}`;
 }
+
+/** The live API reports inbound as `inbound.enabled` and `usable_for_inbound`; `inbound_enabled` is the field the request takes. */
+export const isTelnyxInboundEnabled = (domain: TelnyxDomain | null | undefined): boolean =>
+	Boolean(domain?.inbound_enabled ?? domain?.inbound?.enabled ?? domain?.usable_for_inbound);
 
 /** SPF and DMARC allow one record per name; a second one breaks both. */
 export function policyKind(value: string): "spf" | "dmarc" | null {

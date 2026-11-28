@@ -10,7 +10,7 @@ import {
 	setTelnyxInbound, TELNYX_INBOUND_MX, telnyxClient, verifyTelnyxDomain,
 } from "@/lib/email/telnyx-api";
 import { getTelnyxClient, getTelnyxConfig } from "@/lib/email/telnyx-config";
-import { absoluteTelnyxName, isTelnyxUsername, normalizeDnsValue as normalize, policyKind } from "@/lib/domains/telnyx-domain-utils";
+import { absoluteTelnyxName, isTelnyxInboundEnabled, isTelnyxUsername, normalizeDnsValue as normalize, policyKind } from "@/lib/domains/telnyx-domain-utils";
 import type { ReceivingStep } from "@/lib/aws/ses-receiving-types";
 import type { DomainRow } from "@/lib/domains/types";
 import type { TelnyxDomainView, TelnyxReceivingView } from "@/lib/domains/telnyx-domain-types";
@@ -59,7 +59,7 @@ async function deleteRecords(env: CloudflareEnv, domain: DomainRow, records: Tel
 async function ensureDomain(client: TelnyxClient, domain: DomainRow, inbound: boolean | null): Promise<TelnyxDomain> {
 	const found = await findTelnyxDomain(client, domain.hostname);
 	if (!found) return createTelnyxDomain(client, domain.hostname, inbound === true);
-	if (inbound !== null && !!found.inbound_enabled !== inbound) return setTelnyxInbound(client, found.id, inbound);
+	if (inbound !== null && isTelnyxInboundEnabled(found) !== inbound) return setTelnyxInbound(client, found.id, inbound);
 	return found;
 }
 
@@ -213,7 +213,7 @@ export async function getTelnyxReceivingView(env: CloudflareEnv, domain: DomainR
 	if (!config.apiKey) return { ...base, steps, ready: false, missingInboxes: [] };
 	const client = telnyxClient(env, config.apiKey);
 	const telnyx = await findTelnyxDomain(client, domain.hostname);
-	steps.push({ key: "domain", label: "Inbound enabled for this domain", ok: !!telnyx?.inbound_enabled, detail: telnyx ? undefined : "Domain is not in Telnyx yet" });
+	steps.push({ key: "domain", label: "Inbound enabled for this domain", ok: isTelnyxInboundEnabled(telnyx), detail: telnyx ? undefined : "Domain is not in Telnyx yet" });
 	const mxOk = await hasMx(env, domain, TELNYX_INBOUND_MX);
 	steps.push({ key: "mx", label: "MX record points to Telnyx", ok: mxOk === true, detail: mxOk === null ? "Could not check DNS from here" : TELNYX_INBOUND_MX });
 	steps.push({ key: "verified", label: "Domain verified", ok: telnyx?.status === "verified", detail: telnyx?.status });
@@ -239,7 +239,7 @@ export async function getTelnyxReceivingView(env: CloudflareEnv, domain: DomainR
 export async function hasTelnyxReceivingConfig(env: CloudflareEnv, domain: DomainRow): Promise<boolean | null> {
 	const { apiKey } = await getTelnyxConfig(env);
 	if (!apiKey) return null;
-	try { return !!(await findTelnyxDomain(telnyxClient(env, apiKey), domain.hostname))?.inbound_enabled; }
+	try { return isTelnyxInboundEnabled(await findTelnyxDomain(telnyxClient(env, apiKey), domain.hostname)); }
 	catch { return null; }
 }
 

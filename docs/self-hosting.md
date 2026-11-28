@@ -107,6 +107,8 @@ on the reject or forward decision the server returns. Set
 
 ## Sending mail
 
+Setup needs one outbound option: an SMTP relay, Cloudflare Email Sending, or a Resend, Telnyx, Brevo or Amazon SES key set as a variable.
+
 **Any SMTP relay.** `SMTP_URL=smtps://user:pass@host:465` (or `smtp://`
 with STARTTLS). Works with your hosting provider's relay, Amazon SES,
 Postmark, Mailgun, or a Postfix you run. Set
