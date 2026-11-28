@@ -15,7 +15,7 @@ function toBase64(buffer: ArrayBuffer): string {
 	return btoa(binary);
 }
 
-/** Telnyx returns its own UUID, never an RFC 5322 Message-ID, so we mint one for replies to thread against. */
+/** Telnyx's send response has no RFC 5322 Message-ID, so one is minted to identify the stored copy. It is not sent. */
 export function mintTelnyxMessageId(from: string): string {
 	const domain = getEmailAddress(from).split("@")[1] || "mailflare.local";
 	return `<${crypto.randomUUID()}@${domain}>`;
@@ -33,17 +33,17 @@ function toTelnyxAddress(value: string): string | { email: string; name: string 
 	return name ? { email: address, name } : address;
 }
 
-export function telnyxPayload(message: OutboundProviderMessage, messageId: string, options: { threadingHeaders: boolean }) {
+export function telnyxPayload(message: OutboundProviderMessage, options: { threadingHeaders: boolean }) {
 	const headers: Record<string, string> = {};
 	let replyTo: string | null = null;
 	for (const [name, value] of Object.entries(message.headers ?? {})) {
 		const key = name.toLowerCase();
 		if (key === "reply-to") { replyTo = value; continue; }
+		// Never send a Message-ID: Telnyx adds its own beside it, and Gmail refuses a message with two (550).
 		if (FIELD_HEADERS.has(key) || key === "message-id") continue;
 		if (THREADING_HEADERS.has(key) && !options.threadingHeaders) continue;
 		headers[name] = value;
 	}
-	if (options.threadingHeaders) headers["Message-ID"] = messageId;
 	return {
 		from: toTelnyxAddress(message.from),
 		to: message.to.map(toTelnyxAddress),
@@ -71,16 +71,16 @@ const isHeaderRejection = (error: unknown) =>
 	error instanceof TelnyxApiError && (error.status === 400 || error.status === 422) && /header/i.test(error.message);
 
 /**
- * Sends through `POST /v2/email_messages`. The minted Message-ID and the
- * reply's In-Reply-To/References ride as custom headers; if Telnyx refuses
- * them, the send is retried once without, so delivery never depends on threading.
+ * Sends through `POST /v2/email_messages`. A reply's In-Reply-To/References
+ * ride as custom headers; if Telnyx refuses them, the send is retried once
+ * without, so delivery never depends on threading.
  */
 export async function sendWithTelnyx(client: TelnyxClient, message: OutboundProviderMessage, idempotencyKey?: string): Promise<{ messageId: string }> {
 	const messageId = message.headers?.["Message-ID"] ?? mintTelnyxMessageId(message.from);
 	const key = telnyxIdempotencyKey(idempotencyKey);
 	const send = (threadingHeaders: boolean, keySuffix: string) => telnyxRequest<{ data?: { id?: string } }>(client, "/email_messages", {
 		method: "POST",
-		body: telnyxPayload(message, messageId, { threadingHeaders }),
+		body: telnyxPayload(message, { threadingHeaders }),
 		headers: key ? { "Idempotency-Key": `${key}${keySuffix}`.slice(0, 255) } : undefined,
 	});
 	try {

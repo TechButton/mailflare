@@ -145,7 +145,7 @@ test("the send payload maps fields, drops reserved headers and inlines attachmen
 			{ filename: "a.txt", type: "text/plain", content: new TextEncoder().encode("abc").buffer, disposition: "attachment" },
 			{ filename: "i.png", type: "image/png", content: new Uint8Array([1]).buffer, disposition: "inline", contentId: "<img1>" },
 		],
-	}, "<new@example.com>", { threadingHeaders: true });
+	}, { threadingHeaders: true });
 	assert.deepEqual(payload.from, { email: "me@example.com", name: "Me" });
 	assert.deepEqual(payload.to, ["you@example.net"]);
 	assert.equal(payload.cc, undefined, "empty cc is omitted");
@@ -153,12 +153,12 @@ test("the send payload maps fields, drops reserved headers and inlines attachmen
 	assert.equal(payload.reply_to, "reply@example.com");
 	assert.equal(payload.html_body, "<p>Hi</p>");
 	assert.equal(payload.text_body, "Hi");
-	assert.deepEqual(payload.headers, { "In-Reply-To": "<p@x>", References: "<r@x> <p@x>", "List-Unsubscribe": "<mailto:u@example.com>", "Message-ID": "<new@example.com>" });
+	assert.deepEqual(payload.headers, { "In-Reply-To": "<p@x>", References: "<r@x> <p@x>", "List-Unsubscribe": "<mailto:u@example.com>" });
 	assert.equal(payload.attachments[0].content, "YWJj");
 	assert.equal(payload.attachments[0].disposition, "attachment");
 	assert.equal(payload.attachments[1].content_id, "img1");
 
-	const bare = send.telnyxPayload({ from: "me@example.com", to: ["you@example.net"], subject: "Hi", text: "x", headers: { "In-Reply-To": "<p@x>" } }, "<n@x>", { threadingHeaders: false });
+	const bare = send.telnyxPayload({ from: "me@example.com", to: ["you@example.net"], subject: "Hi", text: "x", headers: { "In-Reply-To": "<p@x>" } }, { threadingHeaders: false });
 	assert.equal(bare.headers, undefined);
 	assert.equal(bare.attachments, undefined);
 });
@@ -172,7 +172,7 @@ test("addresses with a display name are sent as objects in every field", () => {
 		subject: "Hi",
 		text: "x",
 		headers: { "Reply-To": "Help Desk <help@example.com>" },
-	}, "<n@example.com>", { threadingHeaders: true });
+	}, { threadingHeaders: true });
 	assert.deepEqual(payload.from, { email: "maya@example.com", name: "Chen, Maya" });
 	assert.deepEqual(payload.to, [{ email: "sam@example.net", name: "Sam" }, "bare@example.net"]);
 	assert.deepEqual(payload.cc, [{ email: "lee@example.net", name: "Lee" }]);
@@ -189,6 +189,13 @@ test("inbound is read from every shape Telnyx uses", () => {
 	for (const domain of [{}, { inbound: null }, null, undefined]) assert.equal(enabled(domain), false);
 });
 
+test("no Message-ID is ever sent, because Telnyx adds its own and Gmail refuses two", () => {
+	for (const threadingHeaders of [true, false]) {
+		const payload = send.telnyxPayload({ from: "me@example.com", to: ["you@example.net"], subject: "Hi", text: "x", headers: { "Message-ID": "<a@x>", "message-id": "<b@x>", "In-Reply-To": "<p@x>" } }, { threadingHeaders });
+		assert.ok(!Object.keys(payload.headers ?? {}).some((name) => name.toLowerCase() === "message-id"));
+	}
+});
+
 test("idempotency keys keep only the characters Telnyx accepts", () => {
 	assert.equal(send.telnyxIdempotencyKey("job_abc:123/x"), "job_abc123x");
 	assert.equal(send.telnyxIdempotencyKey(undefined), null);
@@ -199,7 +206,7 @@ test("sending retries once without threading headers when Telnyx refuses them", 
 	const calls = [];
 	globalThis.fetch = async (url, init) => {
 		calls.push({ url: String(url), init, body: JSON.parse(init.body) });
-		if (calls.length === 1) return Response.json({ errors: [{ code: "10015", title: "Bad Request", detail: "header Message-ID is not allowed" }] }, { status: 422 });
+		if (calls.length === 1) return Response.json({ errors: [{ code: "10015", title: "Bad Request", detail: "header In-Reply-To is not allowed" }] }, { status: 422 });
 		return Response.json({ data: { id: "uuid-1", status: "queued" } }, { status: 202 });
 	};
 	const client = api.telnyxClient({}, "KEY123");
@@ -209,7 +216,7 @@ test("sending retries once without threading headers when Telnyx refuses them", 
 	assert.equal(calls[0].init.headers.Authorization, "Bearer KEY123");
 	assert.equal(calls[0].init.headers["Idempotency-Key"], "job_1");
 	assert.equal(calls[1].init.headers["Idempotency-Key"], "job_1-nh");
-	assert.equal(calls[0].body.headers["Message-ID"], result.messageId);
+	assert.deepEqual(calls[0].body.headers, { "In-Reply-To": "<p@x>" });
 	assert.equal(calls[1].body.headers, undefined);
 	assert.match(result.messageId, /^<[0-9a-f-]{36}@example\.com>$/);
 });
