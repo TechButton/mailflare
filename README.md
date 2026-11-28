@@ -3,7 +3,7 @@
 
 # Mailflare
 
-A self-hosted alternative to Google Workspace. Setup **custom domain Emails**, **Calendar, Drive, Booking** and **built-in AI agents**. Deploy it to Cloudflare, Docker or Vercel
+A self-hosted alternative to Google Workspace. Setup **custom domain Emails**, **Calendar, Drive, Booking** and **built-in AI agents**. Deploy it to Cloudflare, Docker, Vercel or Railway
 
 **Try [Mailflare Cloud](https://mailflare.co?ref=github)** with high-deliverable emails without managing your deployments
 
@@ -29,7 +29,7 @@ A self-hosted alternative to Google Workspace. Setup **custom domain Emails**, *
 
 ### Apps
 
-- **Email**: Custom domain mailboxes, personal or shared, with access you control. Send and receive with Cloudflare Email, Resend or Amazon SES.
+- **Email**: Custom domain mailboxes, personal or shared, with access you control. Send and receive with Cloudflare Email, Resend, Amazon SES or Telnyx (Telnyx receiving is a preview), or send with Brevo. Each domain picks its own.
 - **Routing rules**: Store, forward, reject or sort incoming mail, including a one-rule filter for newsletters and promotions.
 - **Calendar**: Repeating events with time zones. Attendees get email invitations.
 - **Booking**: Share a public link so anyone can book a free time on your calendar.
@@ -40,7 +40,7 @@ A self-hosted alternative to Google Workspace. Setup **custom domain Emails**, *
 
 - **Databases**: Cloudflare D1 (default), PostgreSQL, MySQL, Turso / libSQL, or a local SQLite file. Set `DATABASE_URL` to switch. Works with Supabase, Neon, PlanetScale, TiDB and more. See [Databases](docs/databases.md).
 - **File storage**: Cloudflare R2, Backblaze B2 or AWS S3.
-- **Hosting**: Cloudflare Workers, a single Docker container, or Vercel.
+- **Hosting**: Cloudflare Workers, a single Docker container, Vercel, or Railway.
 - **Admin**: Users, API keys, webhooks, audit logs and backups.
 - **Import**: Bring in mail from IMAP, Gmail Takeout, `.eml` and `.mbox` files, and Google Calendar events, Google Contacts and Google Drive files from Takeout. See [Importing from Google Takeout](docs/import.md).
 
@@ -50,10 +50,10 @@ Mailflare currently supports 34 languages, including English, Português (Brasil
 
 You can receive and send mail for free.
 
-- **Receiving**: Cloudflare Email Routing is free.
-- **Sending**: Use the free tier of Resend (3,000 emails a month) or Amazon SES. Cloudflare's own sending needs the $5/month Paid Worker plan.
+- **Receiving**: Cloudflare Email Routing is free. Telnyx also lists inbound email at no charge.
+- **Sending**: Use the free tier of Resend (3,000 emails a month, 100 a day), Brevo (300 emails a day, with Brevo branding) or Amazon SES. Telnyx charges for outbound mail. Cloudflare's own sending needs the $5/month Paid Worker plan.
 
-New Amazon SES accounts start in a sandbox. Ask AWS for production access to lift it. Prices change, so check [Resend](https://resend.com/pricing), [Amazon SES](https://aws.amazon.com/ses/pricing/) and [Cloudflare](https://developers.cloudflare.com/workers/platform/pricing/).
+New Amazon SES accounts start in a sandbox. Ask AWS for production access to lift it. Prices change, so check [Resend](https://resend.com/pricing), [Brevo](https://www.brevo.com/pricing/), [Telnyx](https://telnyx.com/pricing/email-api), [Amazon SES](https://aws.amazon.com/ses/pricing/) and [Cloudflare](https://developers.cloudflare.com/workers/platform/pricing/).
 
 ## Deploy
 
@@ -103,6 +103,12 @@ Or skip the build and run the prebuilt image: `docker compose -f docker-compose.
 
 See [self-hosting](docs/self-hosting.md).
 
+### Deploy to Railway
+
+Railway runs the self-hosted server from `Dockerfile.railway`. Attach a volume at `/data`, or every redeploy erases your mail. Outbound SMTP is disabled below Railway's Pro plan, so send through a provider API such as Brevo or Resend. The Free plan's $1 monthly credit is unlikely to cover an always-awake install.
+
+Setup steps, variables and limits: [Railway guide](docs/railway.md).
+
 ### Deploy to Vercel
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fhieunc229%2Fmailflare&env=CRON_SECRET&envDescription=See%20docs%2Fvercel.md&envLink=https%3A%2F%2Fgithub.com%2Fhieunc229%2Fmailflare%2Fblob%2Fmain%2Fdocs%2Fvercel.md)
@@ -132,6 +138,7 @@ A schema change needs a migration for each database type. See [Databases](docs/d
 
 - [Deployment and configuration](docs/deployment.md)
 - [Deploying to Vercel](docs/vercel.md)
+- [Deploying to Railway](docs/railway.md)
 - [Databases](docs/databases.md)
 - [Sending and receiving providers](docs/providers.md)
 - [API and integrations](docs/api.md)

@@ -2,10 +2,10 @@
 
 Mailflare keeps your mail data in your own D1 database and R2 bucket, Backblaze B2 or AWS S3 (or SQLite and local files when self-hosted). What carries mail over the wire is a choice you make **per domain**, separately for receiving and for sending:
 
-| | Cloudflare | Resend | Amazon SES | Telnyx |
-|---|---|---|---|---|
-| **Receiving** | Email Routing (the default) | `email.received` webhook | S3 + SNS notification | `email.received` webhook (preview) |
-| **Sending** | Cloudflare Email Sending | Resend API | SESv2 API | Telnyx Email API |
+| | Cloudflare | Resend | Amazon SES | Telnyx | Brevo |
+|---|---|---|---|---|---|
+| **Receiving** | Email Routing (the default) | `email.received` webhook | S3 + SNS notification | `email.received` webhook (preview) | Not supported |
+| **Sending** | Cloudflare Email Sending | Resend API | SESv2 API | Telnyx Email API | Brevo transactional API |
 
 DNS stays on Cloudflare for every combination: Mailflare writes the records for whichever provider you pick. A domain can also be **receive-only** (sending: Not selected) or **send-only** (receiving: Not selected).
 
@@ -15,7 +15,7 @@ Open **Admin → Domains**, expand a domain, and use the **Setup receiving email
 
 ## Choosing at add time
 
-**New domain** asks which service receives the domain's mail (**Receive mail with**) and which sends it (**Send mail with**), each a dropdown of Cloudflare, Resend, Amazon SES, Telnyx or Not selected. Cloudflare Email Routing and the Cloudflare sending subdomain are only enabled on the zone for the Cloudflare choice. For Resend, SES or Telnyx the domain is added without touching either; finish from the domain page once the credentials are in. The same choices are available over the API as `receivingProvider` and `sendingProvider` (see [API](api.md#domain-management)).
+**New domain** asks which service receives the domain's mail (**Receive mail with**) and which sends it (**Send mail with**), each a dropdown of Cloudflare, Resend, Amazon SES, Telnyx or Not selected; **Send mail with** also offers Brevo. Cloudflare Email Routing and the Cloudflare sending subdomain are only enabled on the zone for the Cloudflare choice. For Resend, SES, Telnyx or Brevo the domain is added without touching either; finish from the domain page once the credentials are in. The same choices are available over the API as `receivingProvider` and `sendingProvider` (see [API](api.md#domain-management)).
 
 ## Resend
 
